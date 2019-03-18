@@ -1,0 +1,9 @@
+simple-settings
+beautifulsoup4
+bs4
+requests
+
+# google
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib

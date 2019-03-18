@@ -1,0 +1,9 @@
+*local.py
+/virtualenv/*
+*.pyc
+.DS_Store
+
+# google calendar files
+credentials.json
+quickstart.py
+token.pickle
