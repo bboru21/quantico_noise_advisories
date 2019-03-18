@@ -1,4 +1,4 @@
-# Strega
+# Quantico Noise Advisories
 Script for scraping the Quantico Noise Advisories, and adding them to your Google Calendar.
 
 ## Installation
