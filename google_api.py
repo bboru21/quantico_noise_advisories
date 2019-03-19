@@ -55,6 +55,9 @@ class GoogleCalendarAPI(object):
         self.service.events().delete(calendarId=settings.GOOGLE_CALENDAR_ID, eventId=eventId).execute()
         return None
 
+    def patch_event(self, eventId, body):
+        return self.service.events().patch(calendarId=settings.GOOGLE_CALENDAR_ID, eventId=eventId, body=body).execute()
+
     def add_event(self, start, end, description, eventId):
 
         eventId = self.format_event_id(eventId)
