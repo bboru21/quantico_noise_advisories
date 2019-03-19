@@ -13,7 +13,7 @@ Place `credentials.json` within the root directory. Don't worry about it showing
 
 Google Client python packages should already have been installed via `setup.sh`, so you should not have to install them again.
 
-Once the process is complete, delete the `token.pickel` file found within the root directory. The boilerplate `GoogleCalendarAPI` class will recreate one with correct scopes for read/write Calendar priveledges.
+Once the process is complete, delete the `token.pickel` file found within the root directory. The `get_advisories.py` script will recreate one with correct scopes for read/write Calendar priveledges.
 
 ## Running the Script
 
