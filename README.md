@@ -15,6 +15,9 @@ Google Client python packages should already have been installed via `setup.sh`,
 
 Once the process is complete, delete the `token.pickel` file found within the root directory. The `get_advisories.py` script will recreate one with correct scopes for read/write Calendar priveledges.
 
+## Setup Local Settings
+This script utilizes a local settings file `settings_local.py` which is ignored by git. This file imports all values from the base settings file `settings_base.py`. If you wish to override any of these base settings (such as `GOOGLE_CALENDAR_ID` whose default value is "primary") you may do so within the `settings_local.py` file.
+
 ## Running the Script
 
 ### Activate virtualenv:
