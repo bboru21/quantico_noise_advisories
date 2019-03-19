@@ -5,6 +5,9 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from googleapiclient.errors import HttpError
+import re
+from base64 import b32encode
 
 import os
 from simple_settings import settings
@@ -34,29 +37,51 @@ class GoogleCalendarAPI(object):
 
         self.service = build('calendar', 'v3', credentials=creds)
 
-    def add_event(self, start, end, description):
+    def format_event_id(self, eventId):
+        # base32hex encoding, lowercase letters a-v and digits 0-9
+        encoded_string = b32encode(eventId)
+        return re.sub(r'[^a-v0-9]', '', encoded_string.lower())
 
-        event = {
-            'summary': 'Quantico Noise Advisory',
-            'location': 'Quantico Military Base, Quantico Virginia',
-            'description': description,
-            'start': {
-                'dateTime': start, # '2015-05-28T17:00:00-07:00'
-                'timeZone': settings.TIME_ZONE,
-            },
-            'end': {
-                'dateTime': end, # '2015-05-28T17:00:00-07:00'
-                'timeZone': settings.TIME_ZONE,
-            },
-            'reminders': {
-                'useDefault': False,
-                'overrides': [
-                    {'method': 'email', 'minutes': 24 * 60},
-                ],
-            },
-        }
+    def get_event(self, eventId):
+        event = None
+        try:
+            event = self.service.events().get(calendarId=settings.GOOGLE_CALENDAR_ID, eventId=eventId).execute()
+        except HttpError, error:
+            # print error
+            pass
+        return event
 
-        event = self.service.events().insert(calendarId=settings.GOOGLE_CALENDAR_ID, body=event).execute()
+    def add_event(self, start, end, description, eventId):
+
+        eventId = self.format_event_id(eventId)
+        event = self.get_event(eventId)
+
+        if event:
+            # event already exists
+            # print event
+            pass
+        else:
+            body = {
+                'id': eventId,
+                'summary': 'Quantico Noise Advisory',
+                'location': 'Quantico Military Base, Quantico Virginia',
+                'description': description,
+                'start': {
+                    'dateTime': start.strftime("%Y-%m-%dT%H:%M:%S"), # '2015-05-28T17:00:00-07:00'
+                    'timeZone': settings.TIME_ZONE,
+                },
+                'end': {
+                    'dateTime': end.strftime("%Y-%m-%dT%H:%M:%S"), # '2015-05-28T17:00:00-07:00'
+                    'timeZone': settings.TIME_ZONE,
+                },
+                'reminders': {
+                    'useDefault': False,
+                    'overrides': [
+                        {'method': 'email', 'minutes': 24 * 60},
+                    ],
+                },
+            }
+            event = self.service.events().insert(calendarId=settings.GOOGLE_CALENDAR_ID, body=body).execute()
 
         return event
 

@@ -10,6 +10,9 @@ from google_api import (
 
 API = GoogleCalendarAPI()
 
+def get_event_id(start, end):
+    return "quantico-noise-advisory-{}{}".format( start.strftime("%Y%m%d%H%M%S"), end.strftime("%Y%m%d%H%M%S") )
+
 def parse_event(event):
     event = event.split(' - ')
     month_day = event[0].split(' ')
@@ -30,17 +33,14 @@ def parse_event(event):
 
     end_hour, end_period = _get_time(time_range[1])
 
-    start = datetime \
-                .datetime.strptime("{} {} {} {} {}".format(month, day, year, start_hour, start_period), "%b %d %Y %I %p") \
-                .strftime("%Y-%m-%dT%H:%M:%S")
-
-    end = datetime \
-            .datetime.strptime("{} {} {} {} {}".format(month, day, year, end_hour, end_period), "%b %d %Y %I %p") \
-            .strftime("%Y-%m-%dT%H:%M:%S")
+    start = datetime.datetime.strptime("{} {} {} {} {}".format(month, day, year, start_hour, start_period), "%b %d %Y %I %p")
+    end = datetime.datetime.strptime("{} {} {} {} {}".format(month, day, year, end_hour, end_period), "%b %d %Y %I %p")
 
     description = event[2] if len(event) > 2 else "Very loud noise and noticeable ground vibrations may occur in the surrounding areas"
 
-    return (start, end, description)
+    eventId = get_event_id(start, end)
+
+    return (start, end, description, eventId)
 
 headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36'}
 
@@ -55,11 +55,8 @@ p = soup.find(text=re.compile('^Very loud noise')).parent.find_next('p')
 events = p.get_text().splitlines()
 
 for event in events:
-    start, end, description = parse_event(event)
-    API.add_event(start, end, description)
-    print 'Advisory added from %s to %s' % (start, end)
-
-# print API.get_calendars()
-# print API.get_events()
+    start, end, description, eventId = parse_event(event)
+    API.add_event(start, end, description, eventId)
+    print 'Advisory added from %s to %s' % (start.strftime("%m/%d/%Y %H:%M"), end.strftime("%m/%d/%Y %H:%M"))
 
 print 'finis'
