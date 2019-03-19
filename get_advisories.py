@@ -36,7 +36,7 @@ def parse_event(event):
     start = datetime.datetime.strptime("{} {} {} {} {}".format(month, day, year, start_hour, start_period), "%b %d %Y %I %p")
     end = datetime.datetime.strptime("{} {} {} {} {}".format(month, day, year, end_hour, end_period), "%b %d %Y %I %p")
 
-    description = event[2] if len(event) > 2 else "Very loud noise and noticeable ground vibrations may occur in the surrounding areas"
+    description = event[2] if len(event) > 2 else "Very loud noise and noticeable ground vibrations may occur in the surrounding areas."
 
     eventId = get_event_id(start, end)
 

@@ -51,16 +51,18 @@ class GoogleCalendarAPI(object):
             pass
         return event
 
+    def delete_event(self, eventId):
+        self.service.events().delete(calendarId=settings.GOOGLE_CALENDAR_ID, eventId=eventId).execute()
+        return None
+
     def add_event(self, start, end, description, eventId):
 
         eventId = self.format_event_id(eventId)
+
+        # check if event already exists
         event = self.get_event(eventId)
 
-        if event:
-            # event already exists
-            # print event
-            pass
-        else:
+        if not event:
             body = {
                 'id': eventId,
                 'summary': 'Quantico Noise Advisory',
@@ -74,12 +76,7 @@ class GoogleCalendarAPI(object):
                     'dateTime': end.strftime("%Y-%m-%dT%H:%M:%S"), # '2015-05-28T17:00:00-07:00'
                     'timeZone': settings.TIME_ZONE,
                 },
-                'reminders': {
-                    'useDefault': False,
-                    'overrides': [
-                        {'method': 'email', 'minutes': 24 * 60},
-                    ],
-                },
+                'reminders': settings.REMINDERS,
             }
             event = self.service.events().insert(calendarId=settings.GOOGLE_CALENDAR_ID, body=body).execute()
 
