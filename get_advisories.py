@@ -30,10 +30,15 @@ def parse_event(event):
 
     end_hour, end_period = _get_time(time_range[1])
 
-    start = datetime.datetime.strptime("{} {} {} {} {}".format(month, day, year, start_hour, start_period), "%b %d %Y %I %p")
-    end = datetime.datetime.strptime("{} {} {} {} {}".format(month, day, year, end_hour, end_period), "%b %d %Y %I %p")
+    start = datetime \
+                .datetime.strptime("{} {} {} {} {}".format(month, day, year, start_hour, start_period), "%b %d %Y %I %p") \
+                .strftime("%Y-%m-%dT%H:%M:%S")
 
-    description = event[2] if len(event) > 2 else "Quantico Noise Advisory"
+    end = datetime \
+            .datetime.strptime("{} {} {} {} {}".format(month, day, year, end_hour, end_period), "%b %d %Y %I %p") \
+            .strftime("%Y-%m-%dT%H:%M:%S")
+
+    description = event[2] if len(event) > 2 else "Very loud noise and noticeable ground vibrations may occur in the surrounding areas"
 
     return (start, end, description)
 
@@ -41,20 +46,20 @@ headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleW
 
 url = 'https://www.quantico.marines.mil/Advisories/Noise-Advisories/'
 
-# page = requests.get(url, headers=headers)
-# soup = BeautifulSoup(page.content, 'html.parser')
-# soup = soup.find("div", class_="livehtml")
+page = requests.get(url, headers=headers)
+soup = BeautifulSoup(page.content, 'html.parser')
+soup = soup.find("div", class_="livehtml")
 
-# p = soup.find(text=re.compile('^Very loud noise')).parent.find_next('p')
+p = soup.find(text=re.compile('^Very loud noise')).parent.find_next('p')
 
-# events = p.get_text().splitlines()
+events = p.get_text().splitlines()
 
-# for event in events:
-#     # event = ['Feb 22', '7 a.m. to 4 p.m.', 'Live Fire of 155MM Howitzer and 81MM HE Mortars']
-#     start, end, description = parse_event(event)
-#     API.add_event(start, end, description)
+for event in events:
+    start, end, description = parse_event(event)
+    API.add_event(start, end, description)
+    print 'Advisory added from %s to %s' % (start, end)
 
-print API.get_calendars()
-print API.get_events()
+# print API.get_calendars()
+# print API.get_events()
 
 print 'finis'

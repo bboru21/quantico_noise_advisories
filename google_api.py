@@ -37,14 +37,15 @@ class GoogleCalendarAPI(object):
     def add_event(self, start, end, description):
 
         event = {
+            'summary': 'Quantico Noise Advisory',
             'location': 'Quantico Military Base, Quantico Virginia',
             'description': description,
             'start': {
-                'dateTime': start.strftime("%Y-%m-%dT%H:%M:%S"), # '2015-05-28T17:00:00-07:00'
+                'dateTime': start, # '2015-05-28T17:00:00-07:00'
                 'timeZone': settings.TIME_ZONE,
             },
             'end': {
-                'dateTime': end.strftime("%Y-%m-%dT%H:%M:%S"), # '2015-05-28T17:00:00-07:00'
+                'dateTime': end, # '2015-05-28T17:00:00-07:00'
                 'timeZone': settings.TIME_ZONE,
             },
             'reminders': {
