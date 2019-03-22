@@ -2,6 +2,7 @@
 /virtualenv/*
 *.pyc
 .DS_Store
+cronscript.log
 
 # google calendar files
 credentials.json

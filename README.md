@@ -29,4 +29,26 @@ This script utilizes a local settings file `settings_local.py` which is ignored 
 `python get_advisories.py --settings=settings_local`
 
 ## Cron Job Setup
-Coming soon...
+
+If you wish to use the script as a recurring cronjob, you can do so using the `cronscript.sh` file.
+
+### Open Crontab
+
+`env EDITOR=vim crontab -e`
+
+### Add job to Crontab
+
+If you're unfamiliar with using `vim`, simply type `i` enable INSERT mode.
+
+Add something like the following to the opened crontab. This example would run the script daily at 6 AM:
+
+`0 6 * * * cd /path/to/script/quantico_noise_advisories && sh cronscript.sh >> cronscript.log 2>&1`
+
+The numbers/stars before the command represent the following:
+1. Minutes, 0-59
+2. Hours, 0-23
+3. Day of Month, 1-31
+4. Day of Week, 0-6
+Leave them as stars for default.
+
+Hit the `esc` key, then type `:wq` to save your changes. If successful, you should see `crontab: installing new crontab` within your terminal.
