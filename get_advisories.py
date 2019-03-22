@@ -4,6 +4,8 @@ import requests
 import re
 import datetime
 
+from send_email import send_email
+
 from google_api import (
     GoogleCalendarAPI
 )
@@ -42,21 +44,28 @@ def parse_event(event):
 
     return (start, end, description, eventId)
 
-headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36'}
+def get_advisories():
 
-url = 'https://www.quantico.marines.mil/Advisories/Noise-Advisories/'
+    headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36'}
 
-page = requests.get(url, headers=headers)
-soup = BeautifulSoup(page.content, 'html.parser')
-soup = soup.find("div", class_="livehtml")
+    url = 'https://www.quantico.marines.mil/Advisories/Noise-Advisories/'
 
-p = soup.find(text=re.compile('^Very loud noise')).parent.find_next('p')
+    page = requests.get(url, headers=headers)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    soup = soup.find("div", class_="livehtml")
 
-events = p.get_text().splitlines()
+    p = soup.find(text=re.compile('^Very loud noise')).parent.find_next('p')
 
-for event in events:
-    start, end, description, eventId = parse_event(event)
-    API.add_event(start, end, description, eventId)
-    print 'Advisory added from %s to %s' % (start.strftime("%m/%d/%Y %H:%M"), end.strftime("%m/%d/%Y %H:%M"))
+    events = p.get_text().splitlines()
+
+    for event in events:
+        start, end, description, eventId = parse_event(event)
+        API.add_event(start, end, description, eventId)
+        print 'Advisory added from %s to %s' % (start.strftime("%m/%d/%Y %H:%M"), end.strftime("%m/%d/%Y %H:%M"))
+
+try:
+    get_advisories()
+except BaseException, error:
+    send_email(error.message)
 
 print 'finis'

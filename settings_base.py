@@ -27,3 +27,11 @@ REMINDERS = { # Information about the event's reminders for the authenticated us
     ],
 },
 '''
+
+# Add correct values to settings_local.py if you wish to receive an e-mail on script failure
+SEND_EMAIL = False          # set to True to send e-mail
+SENDER_EMAIL = None         # e.g. 'youraddress@gmail.com'
+SENDER_EMAIL_HOST = None    # e.g. 'smtp.gmail.com'
+SENDER_EMAIL_PORT = None    # e.g. 465
+SENDER_PASSWORD = None
+RECIPIENT_EMAIL = None      # e.g. 'youraddress@notgmail.com'

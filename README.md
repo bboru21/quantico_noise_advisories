@@ -28,8 +28,5 @@ This script utilizes a local settings file `settings_local.py` which is ignored 
 
 `python get_advisories.py --settings=settings_local`
 
-## Notifications
-Coming soon...
-
 ## Cron Job Setup
 Coming soon...
