@@ -65,7 +65,9 @@ class GoogleCalendarAPI(object):
         # check if event already exists
         event = self.get_event(eventId)
 
-        if not event:
+        if event:
+            return 'advisory already exists from %s to %s' % (start.strftime("%m/%d/%Y %H:%M"), end.strftime("%m/%d/%Y %H:%M"))
+        else:
             body = {
                 'id': eventId,
                 'summary': 'Quantico Noise Advisory',
@@ -82,8 +84,7 @@ class GoogleCalendarAPI(object):
                 'reminders': settings.REMINDERS,
             }
             event = self.service.events().insert(calendarId=settings.GOOGLE_CALENDAR_ID, body=body).execute()
-
-        return event
+            return 'advisory added from %s to %s' % (start.strftime("%m/%d/%Y %H:%M"), end.strftime("%m/%d/%Y %H:%M"))
 
     def get_events(self, max_results=10):
         now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time

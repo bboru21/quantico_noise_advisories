@@ -60,12 +60,14 @@ def get_advisories():
 
     for event in events:
         start, end, description, eventId = parse_event(event)
-        API.add_event(start, end, description, eventId)
-        print 'Advisory added from %s to %s' % (start.strftime("%m/%d/%Y %H:%M"), end.strftime("%m/%d/%Y %H:%M"))
+        result_message = API.add_event(start, end, description, eventId)
+        print '\t* %s' % result_message
 
 try:
+    print '%s advisory script started...' % (datetime.datetime.now())
     get_advisories()
 except BaseException, error:
+    print 'ERROR: %s' % error.message
     send_email(error.message)
 
-print 'finis'
+print '%s advisory script complete' % (datetime.datetime.now())
