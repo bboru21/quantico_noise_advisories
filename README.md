@@ -40,15 +40,16 @@ If you wish to use the script as a recurring cronjob, you can do so using the `c
 
 If you're unfamiliar with using `vim`, simply type `i` to enable INSERT mode.
 
-Type something like the following into the opened crontab, with your desired run-time and the path to where you've installed the script. This example would run the script daily at 6 AM:
+Type something like the following into the opened crontab, with your desired run-time and the path to where you've installed the script. This example would run the script weekly on Sundays at 6 AM:
 
-`0 6 * * * cd /path/to/script/quantico_noise_advisories && sh cronscript.sh >> cronscript.log 2>&1`
+`0 6 * * 0 cd /path/to/script/quantico_noise_advisories && sh cronscript.sh >> cronscript.log 2>&1`
 
 The numbers/stars before the command represent the following:
 1. Minutes, 0-59
 2. Hours, 0-23
 3. Day of Month, 1-31
-4. Day of Week, 0-6
+4. Month, 1-12
+5. Day of Week, 0-6
 
 Leave them as stars for default.
 
