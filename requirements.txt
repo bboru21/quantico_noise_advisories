@@ -2,6 +2,7 @@ simple-settings
 beautifulsoup4
 bs4
 requests
+dateparser
 
 # google
 google-api-python-client

@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
+
 from bs4 import BeautifulSoup
 import json
 import requests
 import re
 import datetime
+import dateparser
 
 from send_email import send_email
 
@@ -12,37 +15,65 @@ from google_api import (
 
 API = GoogleCalendarAPI()
 
-def get_event_id(start, end):
-    return "quantico-noise-advisory-{}{}".format( start.strftime("%Y%m%d%H%M%S"), end.strftime("%Y%m%d%H%M%S") )
+def get_event_id(start, end, description):
+    return "qna-{}{}{}".format( re.sub(r'\W','',description), start.strftime("%Y%m%d%H%M%S"), end.strftime("%Y%m%d%H%M%S") )
 
-def parse_event(event):
-    event = event.split(' - ')
-    month_day = event[0].split(' ')
-    month = month_day[0].replace('.', '')
-    day = month_day[1].zfill(2)
-    year = datetime.datetime.now().year
+MONTH_DAY_PATTERN = re.compile(
+    r'(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)\D+\d{1,2}',
+    flags=re.IGNORECASE,
+)
+TIME_PATTERN = r'\d+\W+(am|a\.m\.|pm|p\.m\.)'
+TIME_RANGE_PATTERN = re.compile(
+    r'{0}\Wto\W{0}'.format(TIME_PATTERN),
+    flags=re.IGNORECASE,
+)
 
-    def _get_time(string):
-        hour_period = string.split(' ')
-        hour = hour_period[0].zfill(2)
 
-        period = re.sub( r'[^APM]+', '', hour_period[1].upper() )
+def prepare_string(string):
+    string = re.sub(r'[^a-z0-9\/\-\.\s]', ' ', string, flags=re.IGNORECASE)
+    string = ' '.join(string.split())
+    string = re.sub(r'\snoon\s', ' 12 pm ', string, flags=re.IGNORECASE)
+    return string
 
-        return (hour, period)
 
-    time_range = event[1].split(' to ')
-    start_hour, start_period = _get_time(time_range[0])
+def parse_event(_string, previous_month_day):
 
-    end_hour, end_period = _get_time(time_range[1])
+    start = None
+    end = None
+    description = None
 
-    start = datetime.datetime.strptime("{} {} {} {} {}".format(month, day, year, start_hour, start_period), "%b %d %Y %I %p")
-    end = datetime.datetime.strptime("{} {} {} {} {}".format(month, day, year, end_hour, end_period), "%b %d %Y %I %p")
+    string = prepare_string(_string)
 
-    description = event[2] if len(event) > 2 else "Very loud noise and noticeable ground vibrations may occur in the surrounding areas."
+    # pase month and day
+    match = re.search(MONTH_DAY_PATTERN, string)
+    if match:
+        month_day = match.group(0)
+    elif previous_month_day:
+        month_day = previous_month_day
 
-    eventId = get_event_id(start, end)
+    # parse time range
+
+    time_range = re.search(TIME_RANGE_PATTERN, string).group(0)
+    start_time, end_time = [ t.strip() for t in time_range.split('to') ]
+
+    # use dateparser package to translate flexible date format
+    start = dateparser.parse('{} {}'.format(month_day, start_time))
+    end = dateparser.parse('{} {}'.format(month_day, end_time))
+
+    # parse description
+    _description = string
+    _description = re.sub(MONTH_DAY_PATTERN, '', _description)
+    _description = re.sub(TIME_RANGE_PATTERN, '', _description)
+    _description = re.sub(r'[^a-z0-9\/\-\.\s]', '', _description, flags=re.IGNORECASE)
+    description = _description.strip()
+
+    if len(description) < 2:
+        description = "Very loud noise and noticeable ground vibrations may occur in the surrounding areas."
+
+    eventId = get_event_id(start, end, description)
 
     return (start, end, description, eventId)
+
 
 def get_advisories():
 
@@ -58,8 +89,11 @@ def get_advisories():
 
     events = p.get_text().splitlines()
 
-    for event in events:
-        start, end, description, eventId = parse_event(event)
+    previous_month_day = None
+
+    for event_string in events:
+        start, end, description, eventId = parse_event(event_string, previous_month_day)
+        previous_month_day = start.strftime("%B %d")
         result_message = API.add_event(start, end, description, eventId)
         print '\t* %s' % result_message
 
