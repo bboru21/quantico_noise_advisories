@@ -22,17 +22,17 @@ MONTH_DAY_PATTERN = re.compile(
     r'(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)\D+\d{1,2}',
     flags=re.IGNORECASE,
 )
-TIME_PATTERN = r'\d+\W+(am|a\.m\.|pm|p\.m\.)'
+TIME_PATTERN = r'\d{1,2}(:\d{1,2})?\W+(am|a\.m\.|pm|p\.m\.)'
 TIME_RANGE_PATTERN = re.compile(
     r'{0}\Wto\W{0}'.format(TIME_PATTERN),
     flags=re.IGNORECASE,
 )
 
-
 def prepare_string(string):
-    string = re.sub(r'[^a-z0-9\/\-\.\s]', ' ', string, flags=re.IGNORECASE)
+    string = re.sub(r'[^a-z0-9:\/\-\.\s]', ' ', string, flags=re.IGNORECASE)
     string = ' '.join(string.split())
     string = re.sub(r'\snoon\s', ' 12 pm ', string, flags=re.IGNORECASE)
+    string = re.sub(r'\smidnight\s', ' 11:59 pm ', string, flags=re.IGNORECASE)
     return string
 
 
