@@ -18,15 +18,11 @@ API = GoogleCalendarAPI()
 def get_event_id(start, end, description):
     return "qna-{}{}{}".format( re.sub(r'\W','',description), start.strftime("%Y%m%d%H%M%S"), end.strftime("%Y%m%d%H%M%S") )
 
-MONTH_DAY_PATTERN = re.compile(
-    r'(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)\D+\d{1,2}',
-    flags=re.IGNORECASE,
-)
+MONTH_DAY_PATTERN = r'(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)\D+\d{1,2}'
+MONTH_DAY_YEAR_PATTERN = r'%s\D+\d{4}' % MONTH_DAY_PATTERN
+
 TIME_PATTERN = r'\d{1,2}(:\d{1,2})?\W+(am|a\.m\.|pm|p\.m\.)'
-TIME_RANGE_PATTERN = re.compile(
-    r'{0}\Wto\W{0}'.format(TIME_PATTERN),
-    flags=re.IGNORECASE,
-)
+TIME_RANGE_PATTERN =  r'{0}\Wto\W{0}'.format(TIME_PATTERN)
 
 def prepare_string(string):
     string = re.sub(r'[^a-z0-9:\/\-\.\s]', ' ', string, flags=re.IGNORECASE)
@@ -41,6 +37,8 @@ def parse_event(_string, previous_month_day):
     start = None
     end = None
     description = None
+    event_id = None
+    month_day = None
 
     string = prepare_string(_string)
 
@@ -53,16 +51,18 @@ def parse_event(_string, previous_month_day):
 
     # parse time range
 
-    time_range = re.search(TIME_RANGE_PATTERN, string).group(0)
-    start_time, end_time = [ t.strip() for t in time_range.split('to') ]
+    match = re.search(TIME_RANGE_PATTERN, string)
+    if match:
+        time_range = match.group(0)
+        start_time, end_time = [ t.strip() for t in time_range.split('to') ]
 
-    # use dateparser package to translate flexible date format
-    start = dateparser.parse('{} {}'.format(month_day, start_time))
-    end = dateparser.parse('{} {}'.format(month_day, end_time))
+        # use dateparser package to translate flexible date format
+        start = dateparser.parse('{} {}'.format(month_day, start_time))
+        end = dateparser.parse('{} {}'.format(month_day, end_time))
 
     # parse description
     _description = string
-    _description = re.sub(MONTH_DAY_PATTERN, '', _description)
+    _description = re.sub(MONTH_DAY_YEAR_PATTERN, '', _description)
     _description = re.sub(TIME_RANGE_PATTERN, '', _description)
     _description = re.sub(r'[^a-z0-9\/\-\.\s]', '', _description, flags=re.IGNORECASE)
     description = _description.strip()
@@ -70,9 +70,10 @@ def parse_event(_string, previous_month_day):
     if len(description) < 2:
         description = "Very loud noise and noticeable ground vibrations may occur in the surrounding areas."
 
-    eventId = get_event_id(start, end, description)
+    if start and end and description:
+        event_id = get_event_id(start, end, description)
 
-    return (start, end, description, eventId)
+    return (start, end, description, event_id, month_day)
 
 
 def get_advisories():
@@ -92,10 +93,12 @@ def get_advisories():
     previous_month_day = None
 
     for event_string in events:
-        start, end, description, eventId = parse_event(event_string, previous_month_day)
-        previous_month_day = start.strftime("%B %d")
-        result_message = API.add_event(start, end, description, eventId)
-        print '\t* %s' % result_message
+        start, end, description, event_id, month_day = parse_event(event_string, previous_month_day)
+        previous_month_day = month_day # store month day even if no start or end time
+
+        if start and end and description and event_id:
+            result_message = API.add_event(start, end, description, event_id)
+            print '\t* %s' % result_message
 
 try:
     print '%s advisory script started...' % (datetime.datetime.now())
